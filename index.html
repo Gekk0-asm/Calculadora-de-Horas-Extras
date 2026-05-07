@@ -3,24 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Horas Extras - Colombia</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Calculadora de Horas Extras · Colombia</title>
+    <!-- Bootstrap 5 CDN (sin CSS personalizado) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 </head>
-<body>
-    <main class="container">
-        <!-- ==================== HEADER ==================== -->
-        <header class="">
-            <div class="">
-                <div class="">⏱️</div>
-                <div class="">
-                    <h1>Calculadora de Horas Extras</h1>
-                    <p class="">Código Sustantivo del Trabajo · Legislación Colombiana</p>
+<body class="bg-light">
+
+    <main class="container py-4 py-lg-5">
+        <!-- ======================== ENCABEZADO ======================== -->
+        <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+            <div class="card-body d-flex align-items-center flex-wrap gap-3">
+                <div class="bg-primary text-white rounded-3 p-2 d-inline-flex align-items-center justify-content-center" style="width:48px; height:48px; font-size:1.5rem;">⏱️</div>
+                <div>
+                    <h1 class="h4 mb-0 fw-bold">Calculadora de Horas Extras</h1>
+                    <small class="text-muted">Código Sustantivo del Trabajo · Legislación Colombiana</small>
                 </div>
-                <span class="">📋 Ley 2101 de 2021</span>
+                <span class="badge bg-warning text-dark ms-auto fw-normal">📋 Ley 2101 de 2021</span>
             </div>
-        </header>
+        </div>
+
+        <!-- ======================== DATOS DE ENTRADA ======================== -->
+        <div class="card border-0 shadow-sm mb-4" id="card-config">
+            <div class="card-body">
+                <h5 class="card-title fw-bold"><span class="me-2">⚙️</span>Datos para el cálculo</h5>
+                <div class="row g-3">
+                    <!-- Salario Mensual -->
+                    <div class="col-md-6">
+                        <label for="salario" class="form-label fw-semibold">Salario Mensual (COP)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="salario" placeholder="Ej: 1.600.000" min="0" step="1000" value="2000000">
+                        </div>
+                    </div>
+                    <!-- Horas Diarias -->
+                    <div class="col-md-6">
+                        <label for="horasDiarias" class="form-label fw-semibold">Horas Diarias de Jornada</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="horasDiarias" placeholder="8" min="1" max="16" step="0.5" value="8">
+                            <span class="input-group-text">hrs/día</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Valor Hora Ordinaria -->
+                <div class="alert alert-info mt-3 mb-0 d-flex align-items-center justify-content-between flex-wrap">
+                    <span class="fw-semibold">💼 Valor Hora Ordinaria:</span>
+                    <span class="fw-bold fs-5" id="valorHoraDisplay">$ 8.333</span>
+                    <small class="text-muted w-100 mt-1">Salario ÷ 30 días ÷ horas/día</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== REGISTRO DE HORAS ======================== -->
+        <div class="card border-0 shadow-sm mb-4" id="card-horas">
+            <div class="card-body">
+                <h5 class="card-title fw-bold"><span class="me-2">📊</span>Registro de Horas por Tipo</h5>
+                <p class="text-muted small mb-3">Complete las casillas que apliquen</p>
+                <div class="row g-3" id="gridHoras">
+                    <!-- 1. Hora Extra Diurna -->
+                    <div class="col-md-6" data-tipo="hed">
+                        <div class="card border border-warning h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="fw-semibold">☀️ Hora Extra Diurna</span>
+                                    <span class="badge bg-warning text-dark">×1.25</span>
+                                </div>
+                                <small class="text-muted d-block mb-2">Extra dentro del horario diurno (6am-9pm)</small>
+                                <div class="input-group input-group-sm mb-2">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('hed', -1)">−</button>
+                                    <input type="number" class="form-control text-center fw-semibold" id="horas-hed" value="0" min="0" max="100" step="0.5" onchange="calcularTodo()" oninput="calcularTodo()">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('hed', 1)">+</button>
+                                </div>
+                                <div class="small" id="resultado-hed"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Hora Extra Nocturna -->
+                    <div class="col-md-6" data-tipo="hen">
+                        <div class="card border border-primary h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="fw-semibold">🌙 Hora Extra Nocturna</span>
+                                    <span class="badge bg-primary">×1.75</span>
+                                </div>
+                                <small class="text-muted d-block mb-2">Extra en horario nocturno (9pm-6am)</small>
+                                <div class="input-group input-group-sm mb-2">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('hen', -1)">−</button>
+                                    <input type="number" class="form-control text-center fw-semibold" id="horas-hen" value="0" min="0" max="100" step="0.5" onchange="calcularTodo()" oninput="calcularTodo()">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('hen', 1)">+</button>
+                                </div>
+                                <div class="small" id="resultado-hen"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Recargo Nocturno Ordinario -->
+                    <div class="col-md-6" data-tipo="rno">
+                        <div class="card border border-primary h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="fw-semibold">🌆 Recargo Nocturno Ordinario</span>
+                                    <span class="badge bg-primary text-dark">+35%</span>
+                                </div>
+                                <small class="text-muted d-block mb-2">Horas de jornada en horario nocturno (recargo sobre base)</small>
+                                <div class="input-group input-group-sm mb-2">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('rno', -1)">−</button>
+                                    <input type="number" class="form-control text-center fw-semibold" id="horas-rno" value="0" min="0" max="100" step="0.5" onchange="calcularTodo()" oninput="calcularTodo()">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('rno', 1)">+</button>
+                                </div>
+                                <div class="small" id="resultado-rno"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Dominical/Festiva Diurna -->
+                    <div class="col-md-6" data-tipo="dfd">
+                        <div class="card border border-danger h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="fw-semibold">📅 Dominical/Festiva Diurna</span>
+                                    <span class="badge bg-danger">×1.75</span>
+                                </div>
+                                <small class="text-muted d-block mb-2">Trabajo en domingo o festivo en horario diurno</small>
+                                <div class="input-group input-group-sm mb-2">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('dfd', -1)">−</button>
+                                    <input type="number" class="form-control text-center fw-semibold" id="horas-dfd" value="0" min="0" max="100" step="0.5" onchange="calcularTodo()" oninput="calcularTodo()">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('dfd', 1)">+</button>
+                                </div>
+                                <div class="small" id="resultado-dfd"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Dominical/Festiva Nocturna -->
+                    <div class="col-md-6" data-tipo="dfn">
+                        <div class="card border border-danger h-100" style="border-left-color: #b91c1c !important;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="fw-semibold">📅🌙 Dominical/Festiva Nocturna</span>
+                                    <span class="badge bg-dark">×2.10</span>
+                                </div>
+                                <small class="text-muted d-block mb-2">Trabajo en domingo/festivo + horario nocturno</small>
+                                <div class="input-group input-group-sm mb-2">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('dfn', -1)">−</button>
+                                    <input type="number" class="form-control text-center fw-semibold" id="horas-dfn" value="0" min="0" max="100" step="0.5" onchange="calcularTodo()" oninput="calcularTodo()">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('dfn', 1)">+</button>
+                                </div>
+                                <div class="small" id="resultado-dfn"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Extra Dominical Diurna -->
+                    <div class="col-md-6" data-tipo="edfd">
+                        <div class="card border border-danger h-100" style="border-left-color: #dc2626 !important;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="fw-semibold">⭐ Extra Dominical Diurna</span>
+                                    <span class="badge bg-danger">×2.00</span>
+                                </div>
+                                <small class="text-muted d-block mb-2">Horas extras en domingo/festivo diurno</small>
+                                <div class="input-group input-group-sm mb-2">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('edfd', -1)">−</button>
+                                    <input type="number" class="form-control text-center fw-semibold" id="horas-edfd" value="0" min="0" max="100" step="0.5" onchange="calcularTodo()" oninput="calcularTodo()">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('edfd', 1)">+</button>
+                                </div>
+                                <div class="small" id="resultado-edfd"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7. Extra Dominical Nocturna -->
+                    <div class="col-md-6" data-tipo="edfn">
+                        <div class="card border border-danger h-100" style="border-left-color: #7f1d1d !important;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="fw-semibold">⭐🌙 Extra Dominical Nocturna</span>
+                                    <span class="badge bg-danger">×2.50</span>
+                                </div>
+                                <small class="text-muted d-block mb-2">Horas extras en domingo/festivo nocturno (máximo recargo)</small>
+                                <div class="input-group input-group-sm mb-2">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('edfn', -1)">−</button>
+                                    <input type="number" class="form-control text-center fw-semibold" id="horas-edfn" value="0" min="0" max="100" step="0.5" onchange="calcularTodo()" oninput="calcularTodo()">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="ajustarHoras('edfn', 1)">+</button>
+                                </div>
+                                <div class="small" id="resultado-edfn"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================== LIQUIDACIÓN DETALLADA ======================== -->
+        <div class="card border-0 shadow-sm mb-4" id="card-resumen">
+            <div class="card-body">
+                <h5 class="card-title fw-bold"><span class="me-2">📋</span>Liquidación Detallada</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle" id="tablaResumen">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Tipo de Hora</th>
+                                <th scope="col">Cant.</th>
+                                <th scope="col">Valor Unitario</th>
+                                <th scope="col">Subtotal</th>
+                                <th scope="col">Recargo Neto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyResumen">
+                            <tr id="filaSinDatos">
+                                <td colspan="5" class="text-center text-muted py-4">📭 Ingrese horas en alguna categoría para ver la liquidación</td>
+                            </tr>
+                        </tbody>
+                        <tfoot id="tfootResumen"></tfoot>
+                    </table>
+                </div>
+                <!-- Total destacado -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap bg-dark text-white p-3 rounded-3 mt-3" id="totalDestacado">
+                    <span class="fw-semibold">💰 Total Adicional a Pagar (horas extras + recargos):</span>
+                    <span class="fw-bold fs-3 text-warning" id="totalCifra">$ 0</span>
+                    <small class="w-100 mt-1 text-white-50">* Este valor es adicional al salario base mensual. No incluye deducciones de ley.</small>
+                </div>
+                <div class="d-flex align-items-center gap-3 mt-3 flex-wrap">
+                    <button class="btn btn-outline-danger btn-sm" onclick="limpiarTodo()">🗑️ Limpiar todo</button>
+                    <small class="text-muted">Los cálculos se actualizan automáticamente</small>
+                </div>
+            </div>
+        </div>
+
     </main>
 </body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 <script src="src/main.js"></script>
 </html>
